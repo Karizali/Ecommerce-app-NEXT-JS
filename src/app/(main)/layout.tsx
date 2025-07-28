@@ -1,9 +1,13 @@
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+// import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+
+
 
 
 export const metadata: Metadata = {
@@ -23,7 +27,19 @@ export default function RootLayout({
         <SidebarProvider className="w-full">
           <AppSidebar className="" />
           <main className="w-lvw">
-            <SidebarTrigger />
+            <div className="flex py-6 bg-[#50d71e]">
+              <SidebarTrigger />
+
+              <div className="">
+                <div className="flex w-full min-w-sm mx-2 items-center gap-2">
+                  <Input className="bg-white" type="email" placeholder="Search" />
+                  <Button type="submit" variant="outline">
+                    Search
+                  </Button>
+                </div>
+
+              </div>
+            </div>
             {children}
           </main>
         </SidebarProvider>
