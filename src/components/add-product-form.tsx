@@ -2,8 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
-
+import { any, z } from "zod"
+import axios from 'axios';
 import { Button } from "@/components/ui/button"
 import {
     Form,
@@ -23,11 +23,23 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Description } from "@radix-ui/react-dialog"
+import Swal from 'sweetalert2'
 
 
+const Toast = Swal.mixin({
+    toast: true,
+    position: "top-end",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+    }
+});
 
 const formSchema = z.object({
-    productName: z.string().min(2, {
+    title: z.string().min(2, {
         message: "Product Name must be at least 2 characters.",
     }),
     description: z.string().min(6, {
@@ -36,7 +48,8 @@ const formSchema = z.object({
     category: z.string({
         required_error: "Please select an Category for your Product",
     }).refine((val) => {
-        let categoryArray = ["clothes", "Electronics", "Books"]
+        let categoryArray = ["clothes", "Electronics", "Books", "Tech", "Sports",
+            "Home Appliances", "Beauty Products", "Toys", "Automotive", "Health & Wellness"]
         return categoryArray.includes(val)
     }, {
         message: "Please select a valid Category for your Product",
@@ -52,6 +65,9 @@ const formSchema = z.object({
         }, {
             message: "Please upload a valid image file (jpg, jpeg, png)",
         }),
+    price: z.string().regex(/^[1-9]\d*$/, {
+        message: "Price must be a valid number",
+    }),
 })
 
 
@@ -60,30 +76,45 @@ export function AddProductForm({ type }: { type?: any }) {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            productName: "",
+            title: "",
             description: "",
             category: "",
             image: "",
+            price: "",
         },
     })
 
-    function onSubmit(values: z.infer<typeof formSchema>,e:any) {
-    
-        // ImageURL =  e.target[1].value
-        // console.log("Image ",ImageURL)
-        
-        console.log(values)
-        form.reset()
+    const addProduct = async (values: z.infer<typeof formSchema>, e: any) => {
+        console.log("Form Values:", values);
+
+
+        // Set axios base URL
+        axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+        try {
+            const response = await axios.post('/api/product', values);
+            console.log("Response:", response.data);
+            // form.reset()
+            Toast.fire({
+                icon: "success",
+                title: "Product added successfully! with ID: " + response.data._id,
+            });
+            return response.data;
+        } catch (error: any) {
+            return {
+                message: error.response ? error.response.data.message : 'An error occurred while adding the product.'
+            }
+        }
     }
 
     return (
         <>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <form onSubmit={form.handleSubmit(addProduct)} className="space-y-8">
 
                     <FormField
                         control={form.control}
-                        name="productName"
+                        name="title"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Product Name</FormLabel>
@@ -96,6 +127,25 @@ export function AddProductForm({ type }: { type?: any }) {
                                 <FormDescription>
                                     This is your public product name.
                                 </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Price</FormLabel>
+                                <FormControl>
+                                    <Input type="number"
+                                        placeholder="Product Price"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                {/* <FormDescription>
+                                    This is your public product name.
+                                </FormDescription> */}
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -134,8 +184,15 @@ export function AddProductForm({ type }: { type?: any }) {
                                     </FormControl>
                                     <SelectContent>
                                         <SelectItem value="clothes">Clothes</SelectItem>
-                                        <SelectItem value="m@google.com">m@google.com</SelectItem>
-                                        <SelectItem value="m@support.com">m@support.com</SelectItem>
+                                        <SelectItem value="Electronics">Electronics</SelectItem>
+                                        <SelectItem value="Books">Books</SelectItem>
+                                        <SelectItem value="Sports">Sports</SelectItem>
+                                        <SelectItem value="Home Appliances">Home Appliances</SelectItem>
+                                        <SelectItem value="Beauty Products">Beauty Products</SelectItem>
+                                        <SelectItem value="Toys">Toys</SelectItem>
+                                        <SelectItem value="Automotive">Automotive</SelectItem>
+                                        <SelectItem value="Health & Wellness">Health & Wellness</SelectItem>
+                                        <SelectItem value="Tech">Tech</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
