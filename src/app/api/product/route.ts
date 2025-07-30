@@ -8,7 +8,7 @@ const productsCollection = client.db("Ecommerce").collection("products");
 
 
 
-export async function GET(request) {
+export async function GET(request: any) {
 
     const response = await productsCollection.find({}).toArray();
 
@@ -19,7 +19,7 @@ export async function GET(request) {
 }
 
 
-export async function POST(request) {
+export async function POST(request: any) {
     const product = await request.json();
 
     if (!product.title || !product.price || !product.category || !product.description || !product.image) {
@@ -44,7 +44,7 @@ export async function POST(request) {
 
 
 
-export async function PUT(request) {
+export async function PUT(request: any) {
     const product = await request.json();
 
     if (!ObjectId.isValid(product._id)) {
@@ -59,7 +59,15 @@ export async function PUT(request) {
         }, { status: 400 });
     }
 
-    let updateFields = {};
+    interface Product {
+        title: string;
+        price: number;
+        description: string;
+        image: string;
+        category: string;
+    }
+
+    let updateFields : Partial<Product> = {};
     if (product.title) updateFields.title = product.title;
     if (product.price) updateFields.price = product.price;
     if (product.description) updateFields.description = product.description;
@@ -89,7 +97,7 @@ export async function PUT(request) {
 }
 
 
-export async function DELETE(request) {
+export async function DELETE(request: any) {
     const product = await request.json();
 
     if (!ObjectId.isValid(product._id)) {
