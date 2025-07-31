@@ -58,7 +58,9 @@ export async function POST(request: any) {
                     email: user.email,
                     iat: Math.floor(Date.now() / 1000) - 30,
                     exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24),
-                }, SECRET);
+                }, {
+                    expiresIn: '1d'
+                },SECRET);
                 
                 (await cookies()).set('Token', token, {
                     maxAge: 86_400_000,

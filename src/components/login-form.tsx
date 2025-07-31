@@ -15,49 +15,95 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import axios from "axios"
+import Swal from "sweetalert2"
+
+
+
+const Toast = Swal.mixin({
+    toast: true,
+    position: "top-end",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+    }
+});
+
 
 
 
 const formSchema = z.object({
-    username: z.string().min(2, {
-        message: "Username must be at least 2 characters.",
-    }),
-    password: z.string().min(6, {
-        message: "Password must be at least 6 characters.",
+    email: z.coerce.string().email().min(6),
+
+    password: z.string().min(1, {
+        message: "Type your password",
     }),
 })
 
-export function LogInForm({type}: { type?: any }) {
+export function LogInForm({ type }: { type?: any }) {
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            username: "",
-            password:"",
+            email: "",
+            password: "",
         },
     })
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        form.reset()
-        // console.log(values)
+
+    const logIn = async (values: z.infer<typeof formSchema>) => {
+        console.log("Form Values:", values);
+
+
+        // Set axios base URL
+        axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+        try {
+            const response = await axios.post('/api/login', {
+                email: values.email,
+                password: values.password,
+            },{
+                withCredentials: true, 
+            });
+            console.log("Response:", response.data);
+            // form.reset()
+            Toast.fire({
+                icon: "success",
+                title: "LogIn successfully! " + response.data.message,
+            });
+            return response.data;
+        } catch (error: any) {
+            console.error("Error during LogIn:", error);
+            console.error("Error data:", error.response.data.message);
+            Toast.fire({
+                icon: "error",
+                title: error.response.data.message,
+            });
+            return {
+                message: error.response.data.message,
+            }
+        }
     }
 
     return (
         <>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <form onSubmit={form.handleSubmit(logIn)} className="space-y-8">
                     <FormField
                         control={form.control}
-                        name="username"
+                        name="email"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Username</FormLabel>
+                                <FormLabel>Email</FormLabel>
                                 <FormControl>
-                                    <Input type="text" placeholder="User Name" {...field} />
+                                    <Input type="text" placeholder="Email" {...field} />
                                 </FormControl>
-                                <FormDescription>
+                                {/* <FormDescription>
                                     This is your public display name.
-                                </FormDescription>
+                                </FormDescription> */}
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -71,9 +117,9 @@ export function LogInForm({type}: { type?: any }) {
                                 <FormControl>
                                     <Input type="password" placeholder="Password" {...field} />
                                 </FormControl>
-                                <FormDescription>
+                                {/* <FormDescription>
                                     Password Should be strong
-                                </FormDescription>
+                                </FormDescription> */}
                                 <FormMessage />
                             </FormItem>
                         )}

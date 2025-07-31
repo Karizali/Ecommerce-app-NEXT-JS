@@ -1,5 +1,4 @@
 import { client } from '@/lib/mongoDB/mongodb.js'
-// import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 
 
@@ -43,10 +42,12 @@ export async function POST(request: Request) {
                 firstName: body.firstName,
                 lastName: body.lastName,
                 email: body.email,
-                password: hash
+                password: hash,
+                createdOn: new Date(),
             });
 
             return Response.json({
+                response: response,
                 message: "User added successfully"
             }, { status: 201 });
         }
