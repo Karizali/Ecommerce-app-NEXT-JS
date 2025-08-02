@@ -10,6 +10,10 @@ const productsCollection = client.db("Ecommerce").collection("products");
 
 export async function GET(request: any) {
 
+    // Get data from headers
+    const decoded = JSON.parse(request.headers.get('decoded'));
+    console.log("Header", decoded)
+
     const response = await productsCollection.find({}).toArray();
 
     return Response.json({
@@ -20,6 +24,8 @@ export async function GET(request: any) {
 
 
 export async function POST(request: any) {
+    const decoded = JSON.parse(request.headers.get('decoded'));
+    console.log("Header", decoded)
     const product = await request.json();
 
     if (!product.title || !product.price || !product.category || !product.description || !product.image) {
@@ -29,6 +35,7 @@ export async function POST(request: any) {
     }
 
     const response = await productsCollection.insertOne({
+        owner:decoded.email,
         title: product.title,
         category: product.category,
         description: product.description,
@@ -45,6 +52,8 @@ export async function POST(request: any) {
 
 
 export async function PUT(request: any) {
+    const decoded = JSON.parse(request.headers.get('decoded'));
+    console.log("Header", decoded)
     const product = await request.json();
 
     if (!ObjectId.isValid(product._id)) {
@@ -67,7 +76,7 @@ export async function PUT(request: any) {
         category: string;
     }
 
-    let updateFields : Partial<Product> = {};
+    let updateFields: Partial<Product> = {};
     if (product.title) updateFields.title = product.title;
     if (product.price) updateFields.price = product.price;
     if (product.description) updateFields.description = product.description;
@@ -98,6 +107,8 @@ export async function PUT(request: any) {
 
 
 export async function DELETE(request: any) {
+    const decoded = JSON.parse(request.headers.get('decoded'));
+    console.log("Header", decoded)
     const product = await request.json();
 
     if (!ObjectId.isValid(product._id)) {

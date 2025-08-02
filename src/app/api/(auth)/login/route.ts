@@ -2,13 +2,14 @@ import jwt from 'jsonwebtoken';
 import bcrypt, { hash } from 'bcrypt';
 import { client } from '@/lib/mongoDB/mongodb.js'
 import { cookies } from "next/headers";
-
+import { any } from 'zod';
 
 
 const usersCollection = client.db("Ecommerce").collection("users");
 const SECRET = process.env.SECRET;
-
+console.log("Secret", SECRET)
 export async function POST(request: any) {
+
     const body = await request.json();
 
     if (
@@ -41,12 +42,11 @@ export async function POST(request: any) {
         })
 
         if (!user) {
-            Response.json({
+            return Response.json({
                 message: "Email or Password is incorrect",
             }, {
                 status: 404
             })
-            return;
         } else {
             console.log(user)
             const match = await bcrypt.compare(body.password, user.password);
@@ -54,13 +54,14 @@ export async function POST(request: any) {
             if (match) {
 
                 const token = jwt.sign({
+                    isAdmin:false,
                     _id: user._id,
                     email: user.email,
                     iat: Math.floor(Date.now() / 1000) - 30,
-                    exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24),
-                }, {
+                    // exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24),
+                }, SECRET,{
                     expiresIn: '1d'
-                },SECRET);
+                });
                 
                 (await cookies()).set('Token', token, {
                     maxAge: 86_400_000,
@@ -82,6 +83,7 @@ export async function POST(request: any) {
                         status: 200
                     });
             } else {
+
                 return Response.json({
                     message: "Email or Password is incorrect"
                 }, {
@@ -92,13 +94,13 @@ export async function POST(request: any) {
         }
 
     } catch (error) {
-        Response.json({
+        console.log("Error  :",error)
+        return Response.json({
             message: "Error in fetching user's data from database"
         }, {
             status: 500
         })
     }
-
 
 }
 

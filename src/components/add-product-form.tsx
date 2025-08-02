@@ -92,7 +92,9 @@ export function AddProductForm({ type }: { type?: any }) {
         axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
         try {
-            const response = await axios.post('/api/product', values);
+            const response = await axios.post('/api/product', values,{
+                withCredentials: true,
+            });
             console.log("Response:", response.data);
             // form.reset()
             Toast.fire({

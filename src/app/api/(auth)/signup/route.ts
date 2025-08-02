@@ -39,6 +39,7 @@ export async function POST(request: Request) {
                 }, { status: 500 });
             }
             const response = await usersCollection.insertOne({
+                isAdmin:false,
                 firstName: body.firstName,
                 lastName: body.lastName,
                 email: body.email,
